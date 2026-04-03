@@ -237,9 +237,9 @@ class PCI:
         else:
             raise NotImplementedError()
 
-     def get_class(self, device_class):
+    def get_class(self, device_class):
         """ Return device_class name of pci_class.
-            'device_class' and 'subclass' are two bytes code variables in hexa of pci_class.
+            'device_class' is a bytes code variables in hexa of pci_class.
             If subclass is unknown None is returned.
         """
         device_class = device_class.lower()
@@ -281,7 +281,7 @@ class PCI:
             if device_class in list(PCI.devices_class.keys()):
                 if subclass in list(PCI.devices_class[device_class][1].keys()):
                     if prog_if in list(PCI.devices_class[device_class][1][subclass][1].keys()):
-                        return PCI.devices_class[device_class][1][subclass][1][prog_if][0]
+                        return PCI.devices_class[device_class][1][subclass][1][prog_if]
                     else:
                         return None
                 else:
