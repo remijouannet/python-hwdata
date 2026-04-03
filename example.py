@@ -7,9 +7,9 @@ from hwdata import PCI, USB, PNP
 pci_vendor_id = '1002'
 pci_device_id = '687f'
 pci_subsystem_id = '1043:04c4'
-pci_class = ""
-pci_subclass = ""
-pci_prog_if = ""
+pci_class = "0c"
+pci_subclass = "07"
+pci_prog_if = "02"
 usb_vendor_id = '03f0'
 usb_device_id = '1f12'
 
@@ -18,9 +18,9 @@ pci = PCI()
 print("Vendor: %s" % pci.get_vendor(pci_vendor_id))
 print("Device: %s" % pci.get_device(pci_vendor_id, pci_device_id))
 print("Subsystem: %s" % pci.get_subsystem(pci_vendor_id, pci_device_id, pci_subsystem_id))
-print("Class: %s" % pci.get_class("0c"))
-print("subclass: %s" % pci.get_subclass("0c", "07"))
-print("prog_if: %s" % pci.get_prog_if("0c", "07", "02"))
+print("Class: %s" % pci.get_class(pci_class))
+print("subclass: %s" % pci.get_subclass(pci_class, pci_subclass))
+print("prog_if: %s" % pci.get_prog_if(pci_class, pci_subclass, pci_prog_if))
 
 
 usb = USB()
