@@ -19,7 +19,7 @@ import sys
 # pylint: disable=misplaced-bare-raise
 
 class USB:
-    """ Interace to usb.ids from hwdata package """
+    """ Interface to usb.ids from hwdata package """
     filename = '/usr/share/hwdata/usb.ids'
     devices = None
 
@@ -103,9 +103,10 @@ class USB:
             raise NotImplementedError()
 
 class PCI:
-    """ Interace to pci.ids from hwdata package """
+    """ Interface to pci.ids from hwdata package """
     filename = '/usr/share/hwdata/pci.ids'
     devices = None
+    devices_class = None
 
     def __init__(self, filename=None):
         """ Load pci.ids from file to internal data structure.
@@ -117,14 +118,22 @@ class PCI:
             self.filename = PCI.filename
         self.cache = 1
 
-        if self.cache and not PCI.devices:
+        if self.cache and not PCI.devices and not PCI.devices_class:
             # parse pci.ids
             PCI.devices = {}
+            PCI.devices_class = {}
+
             f = open(self.filename, encoding='ISO8859-1')
             vendor = None
             device = None
-            for line in f.readlines():
+            while True:
+                line = f.readline()
+                if not line:
+                   break
                 l = line.split()
+
+                if line.startswith('# C class'):
+                    break
                 if line.startswith('#'):
                     continue
                 elif len(l) == 0:
@@ -144,6 +153,36 @@ class PCI:
                         PCI.devices[vendor] = [vendor_name, {}]
                     else: # this should not happen
                         PCI.devices[vendor][0] = vendor_name
+
+            device_class = None
+            subclass = None
+            while True:
+                line = f.readline()
+                if not line:
+                   break
+                l = line.split()
+
+                if line.startswith('#'):
+                    continue
+                elif len(l) == 0:
+                    continue
+                elif line.startswith('\t\t'):
+                    prog_if = l[0].lower()
+                    prog_if_name = ' '.join(l[1:])
+                    PCI.devices_class[device_class][1][subclass][1][prog_if] = prog_if_name
+                elif line.startswith('\t'):
+                    subclass = l[0].lower()
+                    subclass_name = ' '.join(l[1:])
+                    PCI.devices_class[device_class][1][subclass] = [subclass_name, {}]
+                else:
+                    device_class = l[1].lower()
+                    device_class_name = ' '.join(l[2:])
+                    if not device_class in list(PCI.devices_class.keys()):
+                        PCI.devices_class[device_class] = [device_class_name, {}]
+                    else:
+                        PCI.devices_class[device_class][0] = device_class_name
+            f.close()
+
 
     def get_vendor(self, vendor):
         """ Return description of vendor. Parameter is two byte code in hexa.
@@ -198,8 +237,62 @@ class PCI:
         else:
             raise NotImplementedError()
 
+     def get_class(self, device_class):
+        """ Return device_class name of pci_class.
+            'device_class' and 'subclass' are two bytes code variables in hexa of pci_class.
+            If subclass is unknown None is returned.
+        """
+        device_class = device_class.lower()
+        if self.cache:
+            if device_class in list(PCI.devices_class.keys()):
+                return PCI.devices_class[device_class][0]
+            else:
+                return None
+        else:
+            raise NotImplementedError()
+
+    def get_subclass(self, device_class, subclass):
+        """ Return subclass name of pci_class.
+            'device_class' and 'subclass' are two bytes code variables in hexa of pci_class.
+            If subclass is unknown None is returned.
+        """
+        device_class = device_class.lower()
+        subclass = subclass.lower()
+        if self.cache:
+            if device_class in list(PCI.devices_class.keys()):
+                if subclass in list(PCI.devices_class[device_class][1].keys()):
+                    return PCI.devices_class[device_class][1][subclass][0]
+                else:
+                    return None
+            else:
+                return None
+        else:
+            raise NotImplementedError()
+
+    def get_prog_if(self, device_class, subclass, prog_if):
+        """ Return prog_if name of pci_class.
+            'device_class', 'subclass' and prog_if are three byte code variables in hexa of pci_class.
+            If prog_if is unknown None is returned.
+        """
+        device_class = device_class.lower()
+        subclass = subclass.lower()
+        prog_if = prog_if.lower()
+        if self.cache:
+            if device_class in list(PCI.devices_class.keys()):
+                if subclass in list(PCI.devices_class[device_class][1].keys()):
+                    if prog_if in list(PCI.devices_class[device_class][1][subclass][1].keys()):
+                        return PCI.devices_class[device_class][1][subclass][1][prog_if][0]
+                    else:
+                        return None
+                else:
+                    return None
+            else:
+                return None
+        else:
+            raise NotImplementedError()
+
 class PNP:
-    """ Interace to pnp.ids from hwdata package """
+    """ Interface to pnp.ids from hwdata package """
     filename = '/usr/share/hwdata/pnp.ids'
     VENDORS = None
 
