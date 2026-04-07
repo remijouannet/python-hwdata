@@ -132,6 +132,7 @@ class PCI:
                    break
                 l = line.split()
 
+                # Break to exit the loop and parse device classes
                 if line.startswith('# C class'):
                     break
                 if line.startswith('#'):
